@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  auth-service:
+    build: ./auth_service
+    environment:
+      - PORT_ONE=4002
+    ports:
+      - "4002:4002"
+
+  produit-service:
+    build: ./produit_service
+    environment:
+      - PORT=4000
+    ports:
+      - "4000:4000"
+
+  command-service:
+    build: ./command_service
+    environment:
+      - PORT=4001
+    ports:
+      - "4001:4001"
+
+  frontend-service:
+    build: ./frontend_service
+    environment:
+      - PORT=3000
+    ports:
+      - "3000:3000"
+
+  database:
+    image: mongo
+    container_name: mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  mongo_data: {}

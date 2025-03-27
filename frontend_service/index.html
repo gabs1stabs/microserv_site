@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Microservices Frontend</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        h1 {
+            color: #333;
+            margin-top: 20px;
+        }
+        .container {
+            background: white;
+            width: 350px;
+            margin: 50px auto;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        input {
+            width: 90%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background-color:darkgreen;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #00b34e;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Microservices Frontend</h1>
+
+    <div id="registerPage" class="container">
+        <h2>Register</h2>
+        <input type="text" id="registerName" placeholder="Name" required>
+        <input type="email" id="registerEmail" placeholder="Email" required>
+        <input type="password" id="registerPassword" placeholder="Password" required>
+        <button onclick="registerUser()">Register</button>
+        <p id="registerMessage"></p>
+        <button onclick="goToLoginPage()">Already have an account? Login</button>
+    </div>
+
+    <div id="loginPage" class="container hidden">
+        <h2>Login</h2>
+        <input type="email" id="loginEmail" placeholder="Email" required>
+        <input type="password" id="loginPassword" placeholder="Password" required>
+        <button onclick="loginUser()">Login</button>
+        <p id="loginMessage"></p>
+        <button onclick="goToRegisterPage()">Don't have an account? Register</button>
+    </div>
+
+    <div id="productPage" class="container hidden">
+        <h2>Products</h2>
+        <div id="productList"></div>
+        <h3>Add New Product</h3>
+        <input type="text" id="productName" placeholder="Product Name" required>
+        <input type="text" id="productDescription" placeholder="Product Description" required>
+        <input type="number" id="productPrice" placeholder="Price (DH)" required>
+        <button onclick="addProduct()">Add Product</button>
+    </div>
+
+    <div id="orderPage" class="container hidden">
+        <h2>Orders</h2>
+        <div id="orderList"></div>
+        <button onclick="placeOrder()">Add Order</button>
+    </div>
+
+    <button id="logoutBtn" class="hidden" onclick="logout()">Logout</button>
+
+    <script>
+        function goToRegisterPage() {
+            document.getElementById('registerPage').classList.remove('hidden');
+            document.getElementById('loginPage').classList.add('hidden');
+        }
+
+        function goToLoginPage() {
+            document.getElementById('loginPage').classList.remove('hidden');
+            document.getElementById('registerPage').classList.add('hidden');
+        }
+
+        function checkLoginStatus() {
+            const token = localStorage.getItem('token');
+            const loggedIn = !!token;
+            document.getElementById('registerPage').classList.toggle('hidden', loggedIn);
+            document.getElementById('loginPage').classList.toggle('hidden', loggedIn);
+            document.getElementById('productPage').classList.toggle('hidden', !loggedIn);
+            document.getElementById('orderPage').classList.toggle('hidden', !loggedIn);
+            document.getElementById('logoutBtn').classList.toggle('hidden', !loggedIn);
+        }
+
+        async function registerUser() {
+            const nom = document.getElementById('registerName').value;
+            const email = document.getElementById('registerEmail').value;
+            const mot_passe = document.getElementById('registerPassword').value;
+            
+            const res = await fetch('http://auth-service:4002/auth/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nom, email, mot_passe })
+            });
+            const data = await res.json();
+            alert(data.message || 'Registration successful!');
+        }
+
+        async function loginUser() {
+            const email = document.getElementById('loginEmail').value;
+            const mot_passe = document.getElementById('loginPassword').value;
+            
+            const res = await fetch('http://auth-service:4002/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, mot_passe })
+            });
+            const data = await res.json();
+            if (data.token) {
+                localStorage.setItem('token', data.token);
+                alert('Login successful!');
+                checkLoginStatus();
+            } else {
+                alert(data.message || 'Login failed');
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            checkLoginStatus();
+        }
+
+        window.onload = checkLoginStatus;
+    </script>
+</body>
+</html>
